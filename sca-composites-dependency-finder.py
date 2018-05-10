@@ -18,7 +18,7 @@ sca_file_extensions = ["jws", "xml", "jpr", "bpel", "wsdl", "xsd", "xsl", "mplan
 
 # elements and attributes
 element_filters = ["reference", "import"]
-attribute_filters = ['location', 'wsdlLocation']
+attribute_filters = ['location', 'wsdlLocation', 'schemaLocation']
 value_filters = ['value_1', 'value_2', 'value_3']
 
 # result list
