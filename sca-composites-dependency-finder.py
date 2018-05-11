@@ -39,7 +39,7 @@ for sca_composite in sca_composites:
                 file_path = os.path.join(directory_path, file_name)
                 xml_tree = xml_parser.parse(file_path)
                 # create value filters
-                filters = " and ".join(["contains(., '{filter}')".format(filter=value_filter) for value_filter in value_filters])
+                filters = " or ".join(["contains(., '{filter}')".format(filter=value_filter) for value_filter in value_filters])
                 # get elements
                 elements = xml_tree.xpath(".//*[./@*[{filters}]]".format(filters=filters))
                 for element in elements:
@@ -77,5 +77,8 @@ with open(file=output_file, mode='w', encoding='utf-8', newline='\n') as opened_
             data = result.values()
             # print data
             csv_writer.writerow(data)
+        # print success message with results
+        print("'{output_file}' is created with {number_of_results} results.".format(output_file=output_file, number_of_results=len(results)))
     else:
+        # print success message without results
         print("There is no result.")
