@@ -1,1 +1,1 @@
-# SCA Dependency Finder
+# sca-dependency-finder
