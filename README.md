@@ -1,1 +1,1 @@
-# sca-dependency-finder
+# sca-dependencies-finder
