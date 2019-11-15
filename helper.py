@@ -1,15 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 29 11:02:10 2018
-
-@author: Ünver Can Ünlü
-"""
-
 import csv
 from pathlib import Path
 
+
 # generate csv file using giving dictionaries
-def dictionaries_to_csv(output_file, dictionaries):
+def convert_dictionaries_to_csv(output_file, dictionaries):
     with open(file=output_file, mode='w', encoding='utf-8', newline='\n') as opened_file:
         number_of_dictionaries = len(dictionaries)
         if number_of_dictionaries > 0:
@@ -22,6 +16,7 @@ def dictionaries_to_csv(output_file, dictionaries):
                 # print data
                 data = dictionary.values()
                 csv_writer.writerow(data)
+
 
 # check file exists in given path
 def check_file_exists(path):

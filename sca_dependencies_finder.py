@@ -1,29 +1,67 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 29 11:02:10 2018
-
-@author: Ünver Can Ünlü
-"""
+import os
 
 from lxml import etree as xml_parser
-from helper import dictionaries_to_csv, check_file_exists
-from dependency import Dependency
+
 from dependencies_result import DependenciesResult
-import os
+from dependency import Dependency
+from helper import convert_dictionaries_to_csv, check_file_exists
+
 
 # find dependencies
 def find_dependencies(root):
     # sca files
-    xml_file_extensions = list(set(['wsdl', 'xsd', 'xml', 'xsl', 'bpel', 'componentType', 'decs', 'dvm', 'jpr', 'edl', 'jca', 'jws', 'config', 'monitor', 'mwp', 'rules', 'sch', 'schema', 'table', 'offlinedb']))
-    
+    xml_file_extensions = [
+        'wsdl',
+        'xsd',
+        'xml',
+        'xsl',
+        'bpel',
+        'componentType',
+        'decs',
+        'dvm',
+        'jpr',
+        'edl',
+        'jca',
+        'jws',
+        'config',
+        'monitor',
+        'mwp',
+        'rules',
+        'sch',
+        'schema',
+        'table',
+        'offlinedb'
+    ]
+
     # elements and attributes
-    element_filters = list(set(['reference', 'component', 'service', 'import', 'schemaImport', 'schema-import', 'schema']))
-    attribute_filters = list(set(['location', 'wsdlLocation', 'schemaLocation', 'localPart', 'src']))
-    
-    # generate xpaths
-    element_xpath = './/*[' + ' or '.join(["contains(name(.),'" + element_filter + "')" for element_filter in element_filters]) + ']'
-    attribute_xpath = './/@*[' + ' or '.join(["contains(local-name(.),'" + attribute_filter + "')" for attribute_filter in attribute_filters]) + ']'
-    
+    element_filters = [
+        'reference',
+        'component',
+        'service',
+        'import',
+        'schemaImport',
+        'schema-import',
+        'schema'
+    ]
+
+    attribute_filters = [
+        'location',
+        'wsdlLocation',
+        'schemaLocation',
+        'localPart',
+        'src'
+    ]
+
+    # generate XPaths
+    element_xpath = './/*[' + ' or '.join([
+        "contains(name(.),'" + element_filter + "')"
+        for element_filter in element_filters
+    ]) + ']'
+    attribute_xpath = './/@*[' + ' or '.join([
+        "contains(local-name(.),'" + attribute_filter + "')"
+        for attribute_filter in attribute_filters
+    ]) + ']'
+
     # loop over directories
     dependencies = []
     for directory_path, directory_names, file_names in os.walk(root):
@@ -56,19 +94,23 @@ def find_dependencies(root):
                         if len(attribute_name.split(':')) > 1:
                             attribute_name = attribute_name.split(':')[-1]
                         # ignore wsdl service location
-                        if not((file_extension == 'wsdl') and (element_name == 'service') and (attribute_name == 'location')):
+                        if not ((file_extension == 'wsdl') and
+                                (element_name == 'service') and
+                                (attribute_name == 'location')):
                             # create dependency
-                            dependency = Dependency(file=relative_file_path, element=element_name, attribute=attribute_name, path=path)
+                            dependency = Dependency(file=relative_file_path, element=element_name,
+                                                    attribute=attribute_name, path=path)
                             dependencies.append(dependency)
     # return
     return dependencies
 
-def seperate_dependencies(root, dependencies, custom_filters=None):
+
+def separate_dependencies(root, dependencies, custom_filters=None):
     # dependency filters
     mds_dependency_filters = ['oramds:/']
     http_dependency_filters = ['http:/', 'https:/']
     file_dependency_filters = ['file:/']
-    
+
     # separated dependencies lists
     mds_dependencies = []
     http_dependencies = []
@@ -78,10 +120,10 @@ def seperate_dependencies(root, dependencies, custom_filters=None):
         # check mds dependency
         if any(mds_dependency_filter in dependency.path for mds_dependency_filter in mds_dependency_filters):
             mds_dependencies.append(dependency)
-        # check http dependency    
+        # check http dependency
         elif any(http_dependency_filter in dependency.path for http_dependency_filter in http_dependency_filters):
             http_dependencies.append(dependency)
-        # check file dependency    
+        # check file dependency
         elif any(file_dependency_filter in dependency.path for file_dependency_filter in file_dependency_filters):
             file_dependencies.append(dependency)
         # check local dependency if path exists
@@ -92,11 +134,17 @@ def seperate_dependencies(root, dependencies, custom_filters=None):
                 possible_file_path = os.path.join(directory_path, dependency.path)
                 if check_file_exists(possible_file_path):
                     local_dependencies.append(dependency)
-            except Exception: 
+            except Exception:
                 pass
 
     # separated dependencies
-    seperated_dependencies = [DependenciesResult(type='mds', dependencies=mds_dependencies), DependenciesResult(type='http', dependencies=http_dependencies), DependenciesResult(type='file', dependencies=file_dependencies), DependenciesResult(type='local', dependencies=local_dependencies),DependenciesResult(type='all', dependencies=dependencies)]
+    separated_dependencies = [
+        DependenciesResult(category='mds', dependencies=mds_dependencies),
+        DependenciesResult(category='http', dependencies=http_dependencies),
+        DependenciesResult(category='file', dependencies=file_dependencies),
+        DependenciesResult(category='local', dependencies=local_dependencies),
+        DependenciesResult(category='all', dependencies=dependencies)
+    ]
 
     # find custom dependency if custom filters are given
     if custom_filters:
@@ -104,40 +152,48 @@ def seperate_dependencies(root, dependencies, custom_filters=None):
         for dependency in dependencies:
             if any(custom_filter in dependency.path for custom_filter in custom_filters):
                 custom_dependencies.append(dependency)
-        seperated_dependencies.append(DependenciesResult(type='custom', dependencies=custom_dependencies))
-    
+        separated_dependencies.append(DependenciesResult(category='custom', dependencies=custom_dependencies))
+
     # return
-    return seperated_dependencies
+    return separated_dependencies
+
 
 # main
 def main():
     # output files
-    output_files_path = os.path.dirname(os.path.realpath(__file__))
+    output_dictionary_path = os.path.dirname(os.path.realpath(__file__))
     output_files_extension = "csv"
-    
+
     # sca setting
     sca_root = 'root'
-    
+
     # dependencies list
     dependencies = find_dependencies(root=sca_root)
-    
+
     # sort dependencies by file name
     dependencies = sorted(dependencies, key=lambda dependency: dependency.path)
-    
+
     # custom filters
-    custom_filters = ['custom_value_1', 'custom_value_2'] 
-    
+    custom_filters = [
+        'custom_value_1',
+        'custom_value_2'
+    ]
+
     # separate dependencies
-    dependencies_results = seperate_dependencies(root=sca_root, dependencies=dependencies, custom_filters=custom_filters)
+    results = separate_dependencies(root=sca_root, dependencies=dependencies, custom_filters=custom_filters)
 
     # create excel files for each dependencies result
-    for dependencies_result in dependencies_results:
-        if len(dependencies_result.dependencies) > 0:
-            output_file=os.path.join(output_files_path, (dependencies_result.type + '_dependencies' + '.' + output_files_extension))
-            dictionaries = [dependency.as_dict() for dependency in dependencies_result.dependencies]
+    for result in results:
+        if len(result.dependencies) > 0:
+            output_file_name = result.category + '_dependencies' + '.' + output_files_extension
+            output_file = os.path.join(output_dictionary_path, output_file_name)
+            dictionaries = [dependency.convert_to_dictionary() for dependency in result.dependencies]
             number_of_dependencies = len(dictionaries)
-            dictionaries_to_csv(output_file=output_file, dictionaries=dictionaries)
-            print("'{output_file}' is created with {number_of_dependencies} {type} dependencies.".format(output_file=output_file, number_of_dependencies=number_of_dependencies, type=dependencies_result.type))
+            convert_dictionaries_to_csv(output_file=output_file, dictionaries=dictionaries)
+            info = "'{output_file}' is created with {number_of_dependencies} {category} dependencies."
+            print(info.format(number_of_dependencies=number_of_dependencies,
+                              output_file=output_file, category=result.category))
+
 
 if __name__ == '__main__':
     main()
