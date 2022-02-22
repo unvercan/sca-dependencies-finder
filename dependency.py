@@ -1,5 +1,5 @@
 # dependency class
-class Dependency:
+class Dependency(object):
     def __init__(self, file, element, attribute, path):
         self.file = file
         self.element = element

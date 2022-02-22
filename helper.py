@@ -8,12 +8,10 @@ def convert_dictionaries_to_csv(output_file, dictionaries):
         number_of_dictionaries = len(dictionaries)
         if number_of_dictionaries > 0:
             csv_writer = csv.writer(opened_file, delimiter=';')
-            # print header
             header = [key.title() for key in list(dictionaries[0].keys())]
             csv_writer.writerow(header)
             # loop over dictionaries
             for dictionary in dictionaries:
-                # print data
                 data = dictionary.values()
                 csv_writer.writerow(data)
 

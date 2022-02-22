@@ -1,5 +1,5 @@
 # dependencies result class
-class DependenciesResult:
+class DependenciesResult(object):
     def __init__(self, category, dependencies):
         self.category = category
         self.dependencies = dependencies

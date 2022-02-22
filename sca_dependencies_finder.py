@@ -134,7 +134,7 @@ def separate_dependencies(root, dependencies, custom_filters=None):
                 possible_file_path = os.path.join(directory_path, dependency.path)
                 if check_file_exists(possible_file_path):
                     local_dependencies.append(dependency)
-            except Exception:
+            except FileNotFoundError:
                 pass
 
     # separated dependencies
