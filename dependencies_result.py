@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # dependencies result class
 class DependenciesResult(object):
     def __init__(self, category, dependencies):

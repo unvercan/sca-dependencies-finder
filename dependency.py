@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # dependency class
 class Dependency(object):
     def __init__(self, file, element, attribute, path):

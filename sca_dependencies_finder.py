@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 
 from lxml import etree as xml_parser
