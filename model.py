@@ -3,12 +3,12 @@ from enum import Enum
 
 
 class Category(Enum):
-    MDS = "mds"
-    HTTP = "http"
-    FILE = "file"
-    LOCAL = "local"
-    CUSTOM = "custom"
-    OTHER = "other"
+    MDS: str = "mds"
+    HTTP: str = "http"
+    FILE: str = "file"
+    LOCAL: str = "local"
+    CUSTOM: str = "custom"
+    OTHER: str = "other"
 
 
 @dataclass
@@ -22,4 +22,4 @@ class Dependency(object):
 @dataclass
 class Result(object):
     category: Category
-    dependencies: list
+    dependencies: list[Dependency]

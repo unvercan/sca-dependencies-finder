@@ -1,5 +1,5 @@
 # XML file extensions
-FILE_EXTENSIONS = [
+FILE_EXTENSIONS: list[str] = [
     "wsdl",
     "xsd",
     "xml",
@@ -23,7 +23,7 @@ FILE_EXTENSIONS = [
 ]
 
 # XML elements
-ELEMENTS = [
+ELEMENTS: list[str] = [
     "reference",
     "component",
     "service",
@@ -34,7 +34,7 @@ ELEMENTS = [
 ]
 
 # XML attributes
-ATTRIBUTES = [
+ATTRIBUTES: list[str] = [
     "location",
     "wsdlLocation",
     "schemaLocation",
