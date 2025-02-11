@@ -2,17 +2,18 @@
 
 ## Overview
 
-SCA Dependencies Finder is a tool designed to extract and categorize XML-based dependencies from Oracle SOA Composite applications. It scans specified directories for XML files, extracts dependency information, and outputs the results into categorized CSV files.
+SCA Dependencies Finder is a tool designed to extract and categorize XML-based dependencies from Oracle SOA Composite applications. It scans specified directories for XML files, extracts dependency
+information, and outputs the results into categorized CSV files.
 
 ## Features
 
 - Parses XML files to find dependencies based on elements and attributes.
 - Categorizes dependencies into different types:
-  - **MDS Dependencies** (`oramds:/` references)
-  - **HTTP Dependencies** (`http:/` and `https:/` references)
-  - **File Dependencies** (`file:/` references)
-  - **Local Dependencies** (existing paths within the project)
-  - **Custom Dependencies** (user-defined filters)
+    - **MDS Dependencies** (`oramds:/` references)
+    - **HTTP Dependencies** (`http:/` and `https:/` references)
+    - **File Dependencies** (`file:/` references)
+    - **Local Dependencies** (existing paths within the project)
+    - **Custom Dependencies** (user-defined filters)
 - Saves dependency results as CSV files.
 
 ## File Structure
@@ -72,8 +73,8 @@ To define custom dependency filters, modify the `custom_filters` list in `sca_de
 
 ```python
 custom_filters = [
-    'custom_value_1',
-    'custom_value_2'
+    "custom_value_1",
+    "custom_value_2"
 ]
 ```
 
