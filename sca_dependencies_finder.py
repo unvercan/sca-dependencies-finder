@@ -1,8 +1,9 @@
 import os
 
 from lxml import etree as xml_parser
+from lxml.etree import XPathEvalError
 
-from config import ATTRIBUTES, FILE_EXTENSIONS, ELEMENTS
+from config import ATTRIBUTES, FILE_EXTENSIONS, ELEMENTS, IGNORES
 from helper import convert_dictionaries_to_csv, check_path_exists, check_file_exists, convert_dependency_to_dictionary, generate_element_filter_xpath, generate_attribute_filter_xpath
 from model import Dependency, Result, Category
 
@@ -32,24 +33,28 @@ def extract_dependencies(root: str) -> list[Dependency]:
     # filter by elements and attributes
     for file_path, relative_file_path, file_extension in files:
         xml_tree = xml_parser.parse(source=file_path)
-        elements = xml_tree.xpath(element_filter)
-        for element in elements:
-            element_name: str = element.xpath("name(.)")
-            if len(element_name.split(":")) > 1:
-                element_name: str = element_name.split(":")[-1]
-            paths: list[str] = element.xpath(attribute_filter)
-            for path in paths:
-                attribute_name: str = element.xpath("local-name(.//@*[. = '" + path + "'])")
-                if len(attribute_name.split(":")) > 1:
-                    attribute_name: str = attribute_name.split(":")[-1]
-                if not ((file_extension == "wsdl") and (element_name == "service") and (attribute_name == "location")):
-                    dependency: Dependency = Dependency(file=relative_file_path, element=element_name, attribute=attribute_name, path=path)
-                    dependencies.append(dependency)
+        try:
+            elements = xml_tree.xpath(element_filter)
+            for element in elements:
+                element_name: str = element.xpath("name(.)")
+                if len(element_name.split(":")) > 1:
+                    element_name: str = element_name.split(":")[-1]
+                paths: list[str] = element.xpath(attribute_filter)
+                for path in paths:
+                    attribute_name: str = element.xpath("local-name(.//@*[. = '" + path + "'])")
+                    if len(attribute_name.split(":")) > 1:
+                        attribute_name: str = attribute_name.split(":")[-1]
+                    if not any(file_extension == ignored_file_extension and element_name == ignored_element and attribute_name == ignored_attribute
+                               for ignored_file_extension, ignored_element, ignored_attribute in IGNORES):
+                        dependency: Dependency = Dependency(file=relative_file_path, element=element_name, attribute=attribute_name, path=path)
+                        dependencies.append(dependency)
+        except XPathEvalError:
+            pass
 
     return dependencies
 
 
-def generate_results(root: str, dependencies: list[Dependency], custom_filters=list[str] | None) -> list[Result]:
+def generate_results(root: str, dependencies: list[Dependency] = (), custom_filters: list[str] | None = None) -> list[Result]:
     # dependency filters
     mds_filters: list[str] = [
         "oramds:/"
@@ -95,7 +100,7 @@ def generate_results(root: str, dependencies: list[Dependency], custom_filters=l
     ]
 
     # filter by custom filter if exists
-    if custom_filters:
+    if custom_filters and len(custom_filters) > 0:
         custom_dependencies: list[Dependency] = []
         for dependency in dependencies:
             if any(custom_filter in dependency.path for custom_filter in custom_filters):
@@ -117,12 +122,12 @@ def generate_results(root: str, dependencies: list[Dependency], custom_filters=l
 
 def main() -> None:
     # output
-    script_file_path: str = os.path.realpath(filename=__file__)
+    script_file_path: str = os.path.realpath(__file__)
     output_dictionary_path: str = os.path.dirname(script_file_path)
     output_files_extension: str = "csv"
 
     # sca
-    sca_root_path: str = "root"
+    sca_root_path: str = "C:\\Users\\unver\\PycharmProjects\\sca-dependencies-finder"
 
     # extract dependencies
     dependencies: list[Dependency] = extract_dependencies(root=sca_root_path)
