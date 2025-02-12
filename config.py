@@ -41,3 +41,8 @@ ATTRIBUTES: list[str] = [
     "localPart",
     "src"
 ]
+
+# ignored file extension - element - attribute
+IGNORES: list[tuple[str, str, str]] = [
+    ("wsdl", "service", "location"),
+]
