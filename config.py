@@ -1,5 +1,5 @@
 # XML file extensions
-FILE_EXTENSIONS: list[str] = [
+FILE_EXTENSIONS: frozenset[str] = frozenset({
     "wsdl",
     "xsd",
     "xml",
@@ -20,10 +20,10 @@ FILE_EXTENSIONS: list[str] = [
     "schema",
     "table",
     "offlinedb"
-]
+})
 
 # XML elements
-ELEMENTS: list[str] = [
+ELEMENTS: frozenset[str] = frozenset({
     "reference",
     "component",
     "service",
@@ -31,18 +31,18 @@ ELEMENTS: list[str] = [
     "schemaImport",
     "schema-import",
     "schema"
-]
+})
 
 # XML attributes
-ATTRIBUTES: list[str] = [
+ATTRIBUTES: frozenset[str] = frozenset({
     "location",
     "wsdlLocation",
     "schemaLocation",
     "localPart",
     "src"
-]
+})
 
 # ignored file extension - element - attribute
-IGNORES: list[tuple[str, str, str]] = [
+IGNORES: frozenset[tuple[str, str, str]] = frozenset({
     ("wsdl", "service", "location"),
-]
+})

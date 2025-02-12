@@ -1,10 +1,11 @@
 import os
+from pathlib import Path
 
 from lxml import etree as xml_parser
 from lxml.etree import XPathEvalError
 
 from config import ATTRIBUTES, FILE_EXTENSIONS, ELEMENTS, IGNORES
-from helper import convert_dictionaries_to_csv, check_path_exists, check_file_exists, convert_dependency_to_dictionary, generate_element_filter_xpath, generate_attribute_filter_xpath
+from helper import generate_element_filter_xpath, generate_attribute_filter_xpath
 from model import Dependency, Result, Category
 
 
@@ -48,26 +49,28 @@ def extract_dependencies(root: str) -> list[Dependency]:
                                for ignored_file_extension, ignored_element, ignored_attribute in IGNORES):
                         dependency: Dependency = Dependency(file=relative_file_path, element=element_name, attribute=attribute_name, path=path)
                         dependencies.append(dependency)
-        except XPathEvalError:
-            pass
+        except XPathEvalError as error:
+            print("XPath evaluation failed: {error}".format(error=error))
 
     return dependencies
 
 
-def generate_results(root: str, dependencies: list[Dependency] = (), custom_filters: list[str] | None = None) -> list[Result]:
-    # dependency filters
-    mds_filters: list[str] = [
-        "oramds:/"
-    ]
+def generate_results(root: str, dependencies: list[Dependency] = None, custom_filters: frozenset[str] | None = None) -> list[Result]:
+    """generate results"""
 
-    http_filters: list[str] = [
+    # dependency filters
+    mds_filters: frozenset[str] = frozenset({
+        "oramds:/"
+    })
+
+    http_filters: frozenset[str] = frozenset({
         "http:/",
         "https:/"
-    ]
+    })
 
-    file_filters: list[str] = [
+    file_filters: frozenset[str] = frozenset({
         "file:/"
-    ]
+    })
 
     # separated dependencies
     mds_dependencies: list[Dependency] = []
@@ -87,10 +90,10 @@ def generate_results(root: str, dependencies: list[Dependency] = (), custom_filt
                 directory_path: str = os.path.join(file_path, "..")
                 directory_path = os.path.abspath(path=directory_path)
                 possible_file_path: str = os.path.join(directory_path, dependency.path)
-                if check_path_exists(path=possible_file_path) and check_file_exists(path=possible_file_path):
+                if Path(possible_file_path).exists() and Path(possible_file_path).is_file():
                     local_dependencies.append(dependency)
-            except FileNotFoundError:
-                pass
+            except FileNotFoundError as error:
+                print("File not found: {error}".format(error=error))
 
     results: list[Result] = [
         Result(category=Category.MDS, dependencies=mds_dependencies),
@@ -100,7 +103,7 @@ def generate_results(root: str, dependencies: list[Dependency] = (), custom_filt
     ]
 
     # filter by custom filter if exists
-    if custom_filters and len(custom_filters) > 0:
+    if custom_filters:
         custom_dependencies: list[Dependency] = []
         for dependency in dependencies:
             if any(custom_filter in dependency.path for custom_filter in custom_filters):
@@ -109,7 +112,7 @@ def generate_results(root: str, dependencies: list[Dependency] = (), custom_filt
         results.append(custom_result)
 
     # other dependencies
-    other_dependencies: list[Dependency] = [dependency for dependency in dependencies]
+    other_dependencies: list[Dependency] = dependencies.copy()
     for separated in results:
         for dependency in separated.dependencies:
             if dependency in other_dependencies:
@@ -118,42 +121,3 @@ def generate_results(root: str, dependencies: list[Dependency] = (), custom_filt
     results.append(other_result)
 
     return results
-
-
-def main() -> None:
-    # output
-    script_file_path: str = os.path.realpath(__file__)
-    output_dictionary_path: str = os.path.dirname(script_file_path)
-    output_files_extension: str = "csv"
-
-    # sca
-    sca_root_path: str = "C:\\Users\\unver\\PycharmProjects\\sca-dependencies-finder"
-
-    # extract dependencies
-    dependencies: list[Dependency] = extract_dependencies(root=sca_root_path)
-
-    # sort dependencies
-    dependencies: list[Dependency] = sorted(dependencies, key=lambda dependency: dependency.path)
-
-    # custom filters
-    custom_filters: list[str] = [
-        "custom_value_1",
-        "custom_value_2"
-    ]
-
-    # generate results
-    results: list[Result] = generate_results(root=sca_root_path, dependencies=dependencies, custom_filters=custom_filters)
-
-    # create excel files for each dependencies result
-    for result in results:
-        if len(result.dependencies) > 0:
-            output_file_name: str = result.category.name + "_dependencies" + "." + output_files_extension
-            output_file_path: str = os.path.join(output_dictionary_path, output_file_name)
-            dictionaries: list[dict] = [convert_dependency_to_dictionary(dependency) for dependency in result.dependencies]
-            convert_dictionaries_to_csv(output_file=output_file_path, dictionaries=dictionaries)
-            info = "'{output_file}' is created with {number_of_dependencies} {category} dependencies."
-            print(info.format(number_of_dependencies=len(dictionaries), output_file=output_file_path, category=result.category))
-
-
-if __name__ == "__main__":
-    main()
