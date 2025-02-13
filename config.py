@@ -1,4 +1,6 @@
 # XML file extensions
+from pathlib import Path
+
 FILE_EXTENSIONS: frozenset[str] = frozenset({
     "wsdl",
     "xsd",
@@ -46,3 +48,27 @@ ATTRIBUTES: frozenset[str] = frozenset({
 IGNORES: frozenset[tuple[str, str, str]] = frozenset({
     ("wsdl", "service", "location"),
 })
+
+# MDS dependency filters
+MDS_FILTERS: frozenset[str] = frozenset({
+    "oramds:/"
+})
+
+# HTTP dependency filters
+HTTP_FILTERS: frozenset[str] = frozenset({
+    "http:/",
+    "https:/"
+})
+
+# FILE dependency filters
+FILE_FILTERS: frozenset[str] = frozenset({
+    "file:/"
+})
+
+# default values
+DEFAULT = {
+    "input": Path.cwd(),
+    "output": Path.cwd(),
+    "format": "csv",
+    "prefix": "dependencies"
+}
