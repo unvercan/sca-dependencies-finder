@@ -4,8 +4,8 @@ from pathlib import Path
 from lxml import etree as xml_parser
 from lxml.etree import XPathEvalError
 
-from config import ATTRIBUTES, FILE_EXTENSIONS, ELEMENTS, IGNORES
-from helper import generate_element_filter_xpath, generate_attribute_filter_xpath
+from config import ATTRIBUTES, FILE_EXTENSIONS, ELEMENTS, IGNORES, DEFAULT, MDS_FILTERS, HTTP_FILTERS, FILE_FILTERS
+from helper import generate_element_filter_xpath, generate_attribute_filter_xpath, convert_to_dictionary, write_to_csv_file
 from model import Dependency, Result, Category
 
 
@@ -58,31 +58,17 @@ def extract_dependencies(root: str) -> list[Dependency]:
 def generate_results(root: str, dependencies: list[Dependency] = None, custom_filters: frozenset[str] | None = None) -> list[Result]:
     """generate results"""
 
-    # dependency filters
-    mds_filters: frozenset[str] = frozenset({
-        "oramds:/"
-    })
-
-    http_filters: frozenset[str] = frozenset({
-        "http:/",
-        "https:/"
-    })
-
-    file_filters: frozenset[str] = frozenset({
-        "file:/"
-    })
-
     # separated dependencies
     mds_dependencies: list[Dependency] = []
     http_dependencies: list[Dependency] = []
     file_dependencies: list[Dependency] = []
     local_dependencies: list[Dependency] = []
     for dependency in dependencies:
-        if any(mds_filter in dependency.path for mds_filter in mds_filters):
+        if any(mds_filter in dependency.path for mds_filter in MDS_FILTERS):
             mds_dependencies.append(dependency)
-        elif any(http_filter in dependency.path for http_filter in http_filters):
+        elif any(http_filter in dependency.path for http_filter in HTTP_FILTERS):
             http_dependencies.append(dependency)
-        elif any(file_filter in dependency.path for file_filter in file_filters):
+        elif any(file_filter in dependency.path for file_filter in FILE_FILTERS):
             file_dependencies.append(dependency)
         else:
             try:
