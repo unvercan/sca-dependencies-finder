@@ -5,7 +5,7 @@ from pathlib import Path
 from lxml import etree as xml_parser
 from lxml.etree import XPathEvalError
 
-from config import FILE_EXTENSIONS, IGNORES, DEFAULT, MDS_FILTERS, HTTP_FILTERS, FILE_FILTERS
+from config import FILE_EXTENSIONS, IGNORES, DEFAULT, MDS_FILTERS, HTTP_FILTERS, FILE_FILTERS, ATTRIBUTES, ELEMENTS
 from helper import generate_element_filter_xpath, generate_attribute_filter_xpath, convert_to_dictionary, write_to_csv_file
 from model import Dependency, Result, Category
 
@@ -16,8 +16,8 @@ def extract_dependencies(root: str) -> list[Dependency]:
     dependencies: list[Dependency] = []
 
     # generate filters
-    element_filter: str = generate_element_filter_xpath(elements=None)
-    attribute_filter: str = generate_attribute_filter_xpath(attributes=None)
+    element_filter: str = generate_element_filter_xpath(elements=ELEMENTS)
+    attribute_filter: str = generate_attribute_filter_xpath(attributes=ATTRIBUTES)
 
     # loop over directories
     files: list[tuple[Path, Path, str]] = []
