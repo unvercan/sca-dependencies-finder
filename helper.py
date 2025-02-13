@@ -1,22 +1,30 @@
 import csv
+import logging
 from pathlib import Path
 
+from config import DEFAULT
 from model import Dependency
 
 
 def write_to_csv_file(file_path: Path, dictionaries: list[dict] | None = None) -> None:
-    """generate csv file using giving dictionaries"""
+    """write extracted dependencies to a CSV file"""
+
+    logging.info("Writing {count} dependencies to '{path}'".format(count=len(dictionaries), path=file_path))
+
     if not dictionaries:
+        logging.warning("No data to write.")
         return
 
-    with open(file=file_path, mode="w", encoding="utf-8", newline="\n") as opened_file:
-        writer = csv.writer(opened_file, dialect="excel", delimiter=";")
+    with open(file=file_path, mode="w", encoding=DEFAULT.get("encoding"), newline="\n") as opened_file:
+        writer = csv.writer(opened_file, delimiter=DEFAULT.get("delimiter"))
         keys: list[str] = list(dictionaries[0].keys())
         header = [key.lower() for key in keys]
         writer.writerow(header)
         for dictionary in dictionaries:
             row = [dictionary.get(key, "") for key in keys]
             writer.writerow(row)
+
+        logging.info("Successfully wrote {count} dependencies to '{path}'".format(count=len(dictionaries), path=file_path))
 
 
 def convert_to_dictionary(dependency: Dependency) -> dict:
@@ -40,7 +48,7 @@ def generate_attribute_filter_xpath(attributes: frozenset[str] | None = None) ->
 
     conditions = []
     for attribute in attributes:
-        condition: str = "contains(local-name(.)," + "'" + attribute + "')"
+        condition: str = "contains(local-name(.), '{attribute}')".format(attribute=attribute)
         conditions.append(condition)
 
     attribute_filter += " or ".join(conditions) + "]"
@@ -59,7 +67,7 @@ def generate_element_filter_xpath(elements: frozenset[str] | None = None) -> str
 
     conditions = []
     for element in elements:
-        condition: str = "contains(name(.)," + "'" + element + "')"
+        condition: str = "contains(name(.), '{element}')".format(element=element)
         conditions.append(condition)
 
     element_filter += " or ".join(conditions) + "]"

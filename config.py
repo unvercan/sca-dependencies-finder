@@ -1,6 +1,6 @@
-# XML file extensions
 from pathlib import Path
 
+# XML file extensions
 FILE_EXTENSIONS: frozenset[str] = frozenset({
     "wsdl",
     "xsd",
@@ -71,5 +71,8 @@ DEFAULT = {
     "output": Path.cwd(),
     "format": "csv",
     "prefix": "dependencies",
-    "datetime_format": "%Y%m%d_%H%M%S"
+    "datetime_format": "%Y%m%d_%H%M%S",
+    "logging_format": "%(asctime)s - %(levelname)s - %(message)s",
+    "delimiter": ",",
+    "encoding": "utf-8"
 }
