@@ -1,10 +1,11 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 from lxml import etree as xml_parser
 from lxml.etree import XPathEvalError
 
-from config import ATTRIBUTES, FILE_EXTENSIONS, ELEMENTS, IGNORES, DEFAULT, MDS_FILTERS, HTTP_FILTERS, FILE_FILTERS
+from config import FILE_EXTENSIONS, IGNORES, DEFAULT, MDS_FILTERS, HTTP_FILTERS, FILE_FILTERS
 from helper import generate_element_filter_xpath, generate_attribute_filter_xpath, convert_to_dictionary, write_to_csv_file
 from model import Dependency, Result, Category
 
@@ -15,20 +16,18 @@ def extract_dependencies(root: str) -> list[Dependency]:
     dependencies: list[Dependency] = []
 
     # generate filters
-    element_filter: str = generate_element_filter_xpath(elements=ELEMENTS)
-    attribute_filter: str = generate_attribute_filter_xpath(attributes=ATTRIBUTES)
+    element_filter: str = generate_element_filter_xpath(elements=None)
+    attribute_filter: str = generate_attribute_filter_xpath(attributes=None)
 
     # loop over directories
-    files: list[tuple[str, str, str]] = []
+    files: list[tuple[Path, Path, str]] = []
     for directory_path, directory_names, file_names in os.walk(top=root, topdown=True):
         for file_name in file_names:
-            file_extension: str = ""
-            if len(file_name.split(".")) > 1:
-                file_extension: str = file_name.split(".")[-1]
+            file_path: Path = Path(directory_path) / Path(file_name)
+            file_extension: str = file_path.suffix.lstrip(".")
+            relative_file_path: Path = file_path.relative_to(root)
             if file_extension in FILE_EXTENSIONS:
-                file_path: str = os.path.join(directory_path, file_name)
-                relative_file_path: str = os.path.relpath(path=file_path, start=root)
-                file: tuple[str, str, str] = file_path, relative_file_path, file_extension
+                file: tuple[Path, Path, str] = file_path, relative_file_path, file_extension
                 files.append(file)
 
     # filter by elements and attributes
@@ -72,11 +71,10 @@ def generate_results(root: str, dependencies: list[Dependency] = None, custom_fi
             file_dependencies.append(dependency)
         else:
             try:
-                file_path: str = os.path.join(root, dependency.file)
-                directory_path: str = os.path.join(file_path, "..")
-                directory_path = os.path.abspath(path=directory_path)
-                possible_file_path: str = os.path.join(directory_path, dependency.path)
-                if Path(possible_file_path).exists() and Path(possible_file_path).is_file():
+                file_path: Path = Path(root) / dependency.file
+                directory_path: Path = file_path.parent
+                possible_file_path: Path = directory_path / dependency.path
+                if possible_file_path.exists() and possible_file_path.is_file():
                     local_dependencies.append(dependency)
             except FileNotFoundError as error:
                 print("File not found: {error}".format(error=error))
@@ -107,3 +105,25 @@ def generate_results(root: str, dependencies: list[Dependency] = None, custom_fi
     results.append(other_result)
 
     return results
+
+
+def run(input_folder_path: str = DEFAULT.get("input"), output_folder_path: str = DEFAULT.get("output"), output_format: str = DEFAULT.get("prefix"), output_prefix: str = DEFAULT.get("format")) -> None:
+    """run"""
+
+    # extract dependencies
+    dependencies: list[Dependency] = extract_dependencies(root=input_folder_path)
+
+    # sort dependencies
+    dependencies = sorted(dependencies, key=lambda dependency: dependency.path)
+
+    # generate results
+    results: list[Result] = generate_results(root=input_folder_path, dependencies=dependencies, custom_filters=None)
+
+    # create csv files for each result
+    for result in results:
+        if result.dependencies:
+            timestamp = datetime.now().strftime(DEFAULT.get("datetime_format"))
+            output_file_name: str = output_prefix + "_" + result.category.name + "_" + timestamp + "." + output_format
+            output_file_path: Path = Path(output_folder_path) / output_file_name
+            dictionaries: list[dict] = [convert_to_dictionary(dependency) for dependency in result.dependencies]
+            write_to_csv_file(file_path=output_file_path, dictionaries=dictionaries)

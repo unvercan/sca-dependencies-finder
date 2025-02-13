@@ -4,7 +4,7 @@ from pathlib import Path
 from model import Dependency
 
 
-def write_to_csv_file(file_path: Path, dictionaries: list[dict] = None) -> None:
+def write_to_csv_file(file_path: Path, dictionaries: list[dict] | None = None) -> None:
     """generate csv file using giving dictionaries"""
     if not dictionaries:
         return
@@ -29,7 +29,7 @@ def convert_to_dictionary(dependency: Dependency) -> dict:
     }
 
 
-def generate_attribute_filter_xpath(attributes: frozenset[str] = None) -> str:
+def generate_attribute_filter_xpath(attributes: frozenset[str] | None = None) -> str:
     """generates XPath for attribute filtering"""
     attribute_filter: str = ".//@*"
 
@@ -48,7 +48,7 @@ def generate_attribute_filter_xpath(attributes: frozenset[str] = None) -> str:
     return attribute_filter
 
 
-def generate_element_filter_xpath(elements: frozenset[str] = None) -> str:
+def generate_element_filter_xpath(elements: frozenset[str] | None = None) -> str:
     """generates XPath for element filtering"""
     element_filter: str = ".//*"
 

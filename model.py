@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 
 
 class Category(Enum):
@@ -13,7 +14,7 @@ class Category(Enum):
 
 @dataclass
 class Dependency(object):
-    file: str
+    file: Path
     element: str
     attribute: str
     path: str

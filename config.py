@@ -70,5 +70,6 @@ DEFAULT = {
     "input": Path.cwd(),
     "output": Path.cwd(),
     "format": "csv",
-    "prefix": "dependencies"
+    "prefix": "dependencies",
+    "datetime_format": "%Y%m%d_%H%M%S"
 }
